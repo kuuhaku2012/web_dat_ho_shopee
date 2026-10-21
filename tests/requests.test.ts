@@ -27,12 +27,12 @@ test('accepts voucher 40 and rejects removed voucher 70', () => {
   assert.throws(() => parseRequest({ ...base, voucher: '70' }));
 });
 
-test('keeps product details and optional warranty for voucher 100', () => {
+test('keeps product details and optional warranty for every voucher', () => {
   const base = { type: 'order', productUrl: 'https://shopee.vn/a', voucher: '100', quantity: 1, name: 'An', phone: '0900000000', productDetails: 'Màu đen, size M' };
   assert.equal(parseRequest({ ...base, warranty: true }).productDetails, 'Màu đen, size M');
   assert.equal(parseRequest({ ...base, warranty: true }).warranty, true);
   assert.equal(parseRequest({ ...base }).warranty, false);
-  assert.throws(() => parseRequest({ ...base, voucher: '80', warranty: true }));
+  assert.equal(parseRequest({ ...base, voucher: '80', warranty: true }).warranty, true);
 });
 
 test('calculates published fee only for voucher 100', () => {

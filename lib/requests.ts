@@ -63,7 +63,6 @@ export function parseRequest(input: unknown): RequestInput {
     if (!vouchers.includes(voucher as typeof vouchers[number])) throw new ValidationError('Voucher không hợp lệ.');
     if (value.warranty != null && typeof value.warranty !== 'boolean') throw new ValidationError('Lựa chọn bảo hành không hợp lệ.');
     warranty = value.warranty === true;
-    if (warranty && voucher !== '100') throw new ValidationError('Bảo hành hiện chỉ áp dụng cho voucher 100.');
   }
   return { type, productUrl, productDetails, voucher, warranty, quantity, name, phone, email, note };
 }
