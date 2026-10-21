@@ -1,13 +1,16 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { randomBytes, scryptSync } from 'node:crypto';
-import { createSession, readSession, sameOrigin, verifyPassword } from '../lib/auth.ts';
+import { createSession, readSession, sameOrigin, verifyAdminCredentials, verifyPassword } from '../lib/auth.ts';
 
 test('verifies only the configured admin password', () => {
   const salt = randomBytes(16).toString('hex');
   process.env.ADMIN_PASSWORD_SCRYPT = `${salt}:${scryptSync('secret-pass', salt, 64).toString('hex')}`;
   assert.equal(verifyPassword('secret-pass'), true);
   assert.equal(verifyPassword('wrong-pass'), false);
+  process.env.ADMIN_USERNAME = 'admin';
+  assert.equal(verifyAdminCredentials('admin', 'secret-pass'), true);
+  assert.equal(verifyAdminCredentials('someone-else', 'secret-pass'), false);
 });
 
 test('rejects tampered and expired sessions', () => {

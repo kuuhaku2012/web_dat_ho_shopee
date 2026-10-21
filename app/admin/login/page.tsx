@@ -1,5 +1,5 @@
-import LoginForm from './LoginForm';
+import { redirect } from 'next/navigation';
 
 export default function LoginPage() {
-  return <main className="admin-shell"><a className="brand" href="/">ĐẶT HỘ<span>SHOPEE</span></a><div className="admin-card"><h1>Đăng nhập quản trị</h1><LoginForm /></div></main>;
+  redirect('/dang-nhap');
 }

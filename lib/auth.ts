@@ -11,6 +11,10 @@ export function verifyPassword(password: string): boolean {
   return timingSafeEqual(actual, Buffer.from(expected, 'hex'));
 }
 
+export function verifyAdminCredentials(username: string, password: string): boolean {
+  return username === (process.env.ADMIN_USERNAME || 'admin') && verifyPassword(password);
+}
+
 function signature(payload: string) {
   const secret = process.env.SESSION_SECRET;
   if (!secret || secret.length < 32) throw new Error('SESSION_SECRET must contain at least 32 characters');

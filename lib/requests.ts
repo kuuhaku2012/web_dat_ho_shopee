@@ -1,5 +1,6 @@
 export const vouchers = ['40', '50', '60', '80', '100'] as const;
 export type Status = 'new' | 'processing' | 'completed' | 'cancelled';
+export type PaymentStatus = 'not_required' | 'pending' | 'confirmed';
 export type RequestInput = {
   type: 'order' | 'account';
   productUrl: string;
@@ -10,11 +11,17 @@ export type RequestInput = {
   name: string;
   phone: string;
   email: string;
+  address: string;
   note: string;
 };
 export type RequestRecord = RequestInput & {
   id: string;
+  userId?: string | null;
+  privacyConsentVersion: string;
+  privacyConsentedAt: string;
   status: Status;
+  feeAmount: number;
+  paymentStatus: PaymentStatus;
   internalNote: string;
   createdAt: string;
   updatedAt: string;
@@ -22,8 +29,12 @@ export type RequestRecord = RequestInput & {
 
 export class ValidationError extends Error {}
 
+export function isIdempotencyKey(value: string | null): value is string {
+  return typeof value === 'string' && /^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i.test(value);
+}
+
 export function orderFee(voucher: string, warranty: boolean): number | null {
-  return voucher === '100' ? 25_000 + (warranty ? 5_000 : 0) : null;
+  return vouchers.includes(voucher as typeof vouchers[number]) ? 25_000 + (warranty ? 5_000 : 0) : null;
 }
 
 export function parseRequest(input: unknown): RequestInput {
@@ -42,12 +53,12 @@ export function parseRequest(input: unknown): RequestInput {
   if (!Number.isInteger(quantity) || quantity < 1 || quantity > 20) throw new ValidationError('Số lượng phải từ 1 đến 20.');
   const name = field('name', 100);
   const phone = field('phone', 30);
-  const email = field('email', 254);
+  const address = type === 'order' ? field('address', 300) : '';
   const note = field('note', 1000);
   if (!name) throw new ValidationError('Vui lòng nhập tên.');
-  if (!phone && !email) throw new ValidationError('Vui lòng nhập số điện thoại hoặc email.');
-  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new ValidationError('Email không hợp lệ.');
-  if (phone && !/^[+\d][\d\s().-]{5,29}$/.test(phone)) throw new ValidationError('Số điện thoại không hợp lệ.');
+  if (!phone) throw new ValidationError('Vui lòng nhập số điện thoại.');
+  if (!/^[+\d][\d\s().-]{5,29}$/.test(phone)) throw new ValidationError('Số điện thoại không hợp lệ.');
+  if (type === 'order' && !address) throw new ValidationError('Vui lòng nhập địa chỉ nhận hàng.');
   let productUrl = '';
   let productDetails = '';
   let voucher = '';
@@ -58,11 +69,12 @@ export function parseRequest(input: unknown): RequestInput {
     voucher = field('voucher', 3);
     try {
       const url = new URL(productUrl);
-      if (url.protocol !== 'https:' || (url.hostname !== 'shopee.vn' && !url.hostname.endsWith('.shopee.vn'))) throw new Error();
+      const isShopeeLink = url.hostname === 'shopee.vn' || url.hostname.endsWith('.shopee.vn') || url.hostname === 'vn.shp.ee';
+      if (url.protocol !== 'https:' || !isShopeeLink) throw new Error();
     } catch { throw new ValidationError('Vui lòng nhập link sản phẩm Shopee hợp lệ.'); }
     if (!vouchers.includes(voucher as typeof vouchers[number])) throw new ValidationError('Voucher không hợp lệ.');
     if (value.warranty != null && typeof value.warranty !== 'boolean') throw new ValidationError('Lựa chọn bảo hành không hợp lệ.');
     warranty = value.warranty === true;
   }
-  return { type, productUrl, productDetails, voucher, warranty, quantity, name, phone, email, note };
+  return { type, productUrl, productDetails, voucher, warranty, quantity, name, phone, email: '', address, note };
 }
