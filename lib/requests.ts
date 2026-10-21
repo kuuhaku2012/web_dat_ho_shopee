@@ -1,9 +1,11 @@
-export const vouchers = ['50', '60', '70', '80', '100'] as const;
+export const vouchers = ['40', '50', '60', '80', '100'] as const;
 export type Status = 'new' | 'processing' | 'completed' | 'cancelled';
 export type RequestInput = {
   type: 'order' | 'account';
   productUrl: string;
+  productDetails: string;
   voucher: string;
+  warranty: boolean;
   quantity: number;
   name: string;
   phone: string;
@@ -19,6 +21,10 @@ export type RequestRecord = RequestInput & {
 };
 
 export class ValidationError extends Error {}
+
+export function orderFee(voucher: string, warranty: boolean): number | null {
+  return voucher === '100' ? 25_000 + (warranty ? 5_000 : 0) : null;
+}
 
 export function parseRequest(input: unknown): RequestInput {
   if (!input || typeof input !== 'object') throw new ValidationError('Dữ liệu không hợp lệ.');
@@ -43,15 +49,21 @@ export function parseRequest(input: unknown): RequestInput {
   if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new ValidationError('Email không hợp lệ.');
   if (phone && !/^[+\d][\d\s().-]{5,29}$/.test(phone)) throw new ValidationError('Số điện thoại không hợp lệ.');
   let productUrl = '';
+  let productDetails = '';
   let voucher = '';
+  let warranty = false;
   if (type === 'order') {
     productUrl = field('productUrl', 2000);
+    productDetails = field('productDetails', 500);
     voucher = field('voucher', 3);
     try {
       const url = new URL(productUrl);
       if (url.protocol !== 'https:' || (url.hostname !== 'shopee.vn' && !url.hostname.endsWith('.shopee.vn'))) throw new Error();
     } catch { throw new ValidationError('Vui lòng nhập link sản phẩm Shopee hợp lệ.'); }
     if (!vouchers.includes(voucher as typeof vouchers[number])) throw new ValidationError('Voucher không hợp lệ.');
+    if (value.warranty != null && typeof value.warranty !== 'boolean') throw new ValidationError('Lựa chọn bảo hành không hợp lệ.');
+    warranty = value.warranty === true;
+    if (warranty && voucher !== '100') throw new ValidationError('Bảo hành hiện chỉ áp dụng cho voucher 100.');
   }
-  return { type, productUrl, voucher, quantity, name, phone, email, note };
+  return { type, productUrl, productDetails, voucher, warranty, quantity, name, phone, email, note };
 }

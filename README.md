@@ -1,6 +1,6 @@
 # Web nhận yêu cầu đặt hộ Shopee
 
-Website tiếng Việt cho khách gửi yêu cầu đặt hộ Shopee hoặc yêu cầu tài khoản mới. Chủ web xem và xử lý thủ công ở `/admin`. Chưa có báo giá, thanh toán, tự đặt đơn hoặc giao thông tin tài khoản trên web.
+Website tiếng Việt cho khách gửi yêu cầu đặt hộ Shopee hoặc yêu cầu tài khoản mới. Chủ web xem và xử lý thủ công ở `/admin`. Voucher 100 có phí đặt hộ 25.000đ và bảo hành tùy chọn 5.000đ; các voucher khác chưa có giá công bố. Chưa có thanh toán, tự đặt đơn hoặc giao thông tin tài khoản trên web.
 
 ## Yêu cầu
 
@@ -34,4 +34,4 @@ Giới hạn gửi form (30 lần/phút) và đăng nhập (5 lần/phút) hiệ
 
 ## Cập nhật nội dung
 
-Văn bản và nhãn dịch vụ nằm trong `app/page.tsx`. Các lựa chọn voucher nằm trong `lib/requests.ts`. Giá hiện chưa được công bố; cập nhật nội dung khi có bảng giá xác thực.
+Văn bản và nhãn dịch vụ nằm trong `app/page.tsx`. Các lựa chọn voucher và quy tắc tính phí voucher 100 nằm trong `lib/requests.ts`. Cập nhật các voucher khác khi có bảng giá xác thực.
